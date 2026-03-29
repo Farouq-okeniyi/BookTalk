@@ -1,0 +1,42 @@
+{
+  "name": "Quote",
+  "type": "object",
+  "properties": {
+    "book_id": {
+      "type": "string",
+      "description": "Reference to the book"
+    },
+    "book_title": {
+      "type": "string",
+      "description": "Title of the book for display"
+    },
+    "book_author": {
+      "type": "string",
+      "description": "Author of the book"
+    },
+    "text": {
+      "type": "string",
+      "description": "The actual quote or line from the book"
+    },
+    "page_number": {
+      "type": "number",
+      "description": "Page number of the quote"
+    },
+    "chapter": {
+      "type": "string",
+      "description": "Chapter reference"
+    },
+    "reflection": {
+      "type": "string",
+      "description": "Personal reflection on this quote"
+    },
+    "impact": {
+      "type": "string",
+      "description": "How I want this to impact me"
+    }
+  },
+  "required": [
+    "text",
+    "book_title"
+  ]
+}

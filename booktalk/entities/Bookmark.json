@@ -1,0 +1,17 @@
+{
+  "name": "Bookmark",
+  "type": "object",
+  "properties": {
+    "post_id": {
+      "type": "string",
+      "description": "The bookmarked post ID"
+    },
+    "user_email": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "post_id",
+    "user_email"
+  ]
+}

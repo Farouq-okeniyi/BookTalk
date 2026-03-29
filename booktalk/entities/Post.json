@@ -1,0 +1,72 @@
+{
+  "name": "Post",
+  "type": "object",
+  "properties": {
+    "author_name": {
+      "type": "string",
+      "description": "Display name of the post author"
+    },
+    "author_email": {
+      "type": "string",
+      "description": "Email of the post author"
+    },
+    "quote_text": {
+      "type": "string",
+      "description": "The tagged line or paragraph from the book"
+    },
+    "book_title": {
+      "type": "string",
+      "description": "Title of the book referenced"
+    },
+    "book_author": {
+      "type": "string",
+      "description": "Author of the book"
+    },
+    "body": {
+      "type": "string",
+      "description": "The user's thoughts, opinion, or reflection on the quote"
+    },
+    "likes_count": {
+      "type": "number",
+      "default": 0
+    },
+    "comments_count": {
+      "type": "number",
+      "default": 0
+    },
+    "reposts_count": {
+      "type": "number",
+      "default": 0
+    },
+    "liked_by": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Emails of users who liked"
+    },
+    "reposted_by": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Emails of users who reposted"
+    },
+    "is_repost": {
+      "type": "boolean",
+      "default": false
+    },
+    "original_post_id": {
+      "type": "string",
+      "description": "If repost, the original post ID"
+    },
+    "original_author_name": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "quote_text",
+    "book_title",
+    "body"
+  ]
+}

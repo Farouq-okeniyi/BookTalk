@@ -1,0 +1,47 @@
+{
+  "name": "Book",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Title of the book"
+    },
+    "author": {
+      "type": "string",
+      "description": "Author of the book"
+    },
+    "cover_url": {
+      "type": "string",
+      "description": "URL of book cover image"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "reading",
+        "finished",
+        "want_to_read"
+      ],
+      "default": "want_to_read"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "finish_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "rating": {
+      "type": "number",
+      "description": "Rating out of 5"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Personal notes about the book"
+    }
+  },
+  "required": [
+    "title",
+    "author"
+  ]
+}

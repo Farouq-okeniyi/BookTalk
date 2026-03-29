@@ -1,0 +1,57 @@
+{
+  "name": "JournalEntry",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Optional title for the entry"
+    },
+    "body": {
+      "type": "string",
+      "description": "The journal entry content"
+    },
+    "visibility": {
+      "type": "string",
+      "enum": [
+        "private",
+        "friends",
+        "public"
+      ],
+      "default": "private",
+      "description": "Who can see this entry"
+    },
+    "mood": {
+      "type": "string",
+      "enum": [
+        "inspired",
+        "reflective",
+        "curious",
+        "grateful",
+        "melancholic",
+        "excited",
+        "calm"
+      ],
+      "description": "How you're feeling while writing"
+    },
+    "book_title": {
+      "type": "string",
+      "description": "Book this entry relates to (optional)"
+    },
+    "book_author": {
+      "type": "string"
+    },
+    "quote_text": {
+      "type": "string",
+      "description": "A quote that sparked this entry"
+    },
+    "author_email": {
+      "type": "string"
+    },
+    "author_name": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "body"
+  ]
+}

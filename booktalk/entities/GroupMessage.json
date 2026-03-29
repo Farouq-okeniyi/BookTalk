@@ -1,0 +1,26 @@
+{
+  "name": "GroupMessage",
+  "type": "object",
+  "properties": {
+    "group_id": {
+      "type": "string"
+    },
+    "author_name": {
+      "type": "string"
+    },
+    "author_email": {
+      "type": "string"
+    },
+    "body": {
+      "type": "string"
+    },
+    "quote_reference": {
+      "type": "string",
+      "description": "Optional quote being discussed"
+    }
+  },
+  "required": [
+    "group_id",
+    "body"
+  ]
+}

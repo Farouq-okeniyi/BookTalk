@@ -1,0 +1,47 @@
+{
+  "name": "ReadingGroup",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Group name"
+    },
+    "description": {
+      "type": "string"
+    },
+    "book_title": {
+      "type": "string",
+      "description": "Current book being discussed"
+    },
+    "book_author": {
+      "type": "string"
+    },
+    "cover_url": {
+      "type": "string"
+    },
+    "members": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Member emails (max 15)"
+    },
+    "member_names": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Member display names"
+    },
+    "owner_email": {
+      "type": "string"
+    },
+    "owner_name": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "name",
+    "book_title"
+  ]
+}

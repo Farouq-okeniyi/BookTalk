@@ -1,0 +1,44 @@
+{
+    "name": "Reminder",
+    "type": "object",
+    "properties": {
+        "book_title": {
+            "type": "string"
+        },
+        "book_id": {
+            "type": "string"
+        },
+        "reminder_type": {
+            "type": "string",
+            "enum": [
+                "daily",
+                "weekly"
+            ],
+            "default": "daily"
+        },
+        "day_of_week": {
+            "type": "string",
+            "enum": [
+                "monday",
+                "tuesday",
+                "wednesday",
+                "thursday",
+                "friday",
+                "saturday",
+                "sunday"
+            ],
+            "description": "For weekly reminders"
+        },
+        "message": {
+            "type": "string",
+            "description": "Custom reminder note"
+        },
+        "is_active": {
+            "type": "boolean",
+            "default": true
+        }
+    },
+    "required": [
+        "book_title"
+    ]
+}

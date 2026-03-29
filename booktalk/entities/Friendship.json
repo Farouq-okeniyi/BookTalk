@@ -1,0 +1,29 @@
+{
+  "name": "Friendship",
+  "type": "object",
+  "properties": {
+    "requester_email": {
+      "type": "string",
+      "description": "Email of the user who sent the friend/follow request"
+    },
+    "requester_name": {
+      "type": "string"
+    },
+    "target_email": {
+      "type": "string",
+      "description": "Email of the user being followed"
+    },
+    "target_name": {
+      "type": "string"
+    },
+    "notifications_enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether the requester gets notified about target's new posts"
+    }
+  },
+  "required": [
+    "requester_email",
+    "target_email"
+  ]
+}
