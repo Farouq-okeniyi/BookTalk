@@ -36,10 +36,20 @@ export const getUserProfile = async (username) => {
   return data;
 };
 
+/**
+ * Search for users by username or email
+ * GET /api/users/search?query=...
+ */
+export const search = async (query) => {
+  const { data } = await apiClient.get(`/users/search?query=${encodeURIComponent(query)}`);
+  return data; // Array of UserProfileDto
+};
+
 export const usersApi = {
   getMe,
   updateProfile,
   getUserProfile,
+  search,
 };
 
 export default usersApi;
