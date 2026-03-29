@@ -9,6 +9,15 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Only attempt to fetch the user if we have an authentication flag set.
+    // This prevents unnecessary /me calls before login or after manual logout.
+    const hasAuthSession = localStorage.getItem('booktalk_authenticated') === 'true';
+    
+    if (!hasAuthSession) {
+      setIsLoading(false);
+      return;
+    }
+
     usersApi.getMe()
       .then((userData) => {
         userData.email = userData.email || localStorage.getItem('booktalk_user_email');
@@ -19,6 +28,7 @@ export const AuthProvider = ({ children }) => {
       .catch((error) => {
         setUser(null);
         setIsAuthenticated(false);
+        localStorage.removeItem('booktalk_authenticated');
       })
       .finally(() => setIsLoading(false));
   }, []);
@@ -27,6 +37,7 @@ export const AuthProvider = ({ children }) => {
     const data = await authApi.login({ email, password });
     
     localStorage.setItem('booktalk_user_email', data.email);
+    localStorage.setItem('booktalk_authenticated', 'true');
 
     const basicUser = {
       id: data.id,
@@ -61,6 +72,7 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     setIsAuthenticated(false);
     localStorage.removeItem('booktalk_user_email');
+    localStorage.removeItem('booktalk_authenticated');
     window.location.href = '/login';
   }, []);
 
