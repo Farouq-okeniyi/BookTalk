@@ -22,7 +22,7 @@ const statusColors = {
 
 export default function BookCard({ book, onUpdate }) {
   const handleDelete = async () => {
-    await booksApi.remove(book.id);
+    await booksApi.remove(book.userBookId);
     toast.success('Book removed');
     onUpdate?.();
   };

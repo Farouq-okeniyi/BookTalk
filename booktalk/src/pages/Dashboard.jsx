@@ -8,6 +8,7 @@ import { BookOpen, TrendingUp, Calendar, Quote, Users, Star, ThumbsUp, MessageCi
 import { format, isAfter, subDays } from 'date-fns';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { Link } from 'react-router-dom';
+import Loader from '@/components/ui/loader';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -45,6 +46,10 @@ export default function Dashboard() {
     initialData: [],
     enabled: !!user?.email,
   });
+
+  if (!stats && (posts.length === 0 || books.length === 0)) {
+    return <Loader text="Calculating your reading stats..." />;
+  }
 
   const now = new Date();
   

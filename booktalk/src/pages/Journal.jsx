@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { BookOpen, Lock, Users, Globe, Plus, Pencil, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import Loader from '@/components/ui/loader';
 
 const MOODS = [
   { value: 'inspired', emoji: '✨', label: 'Inspired' },
@@ -138,9 +139,7 @@ export default function Journal() {
 
       {/* Entries */}
       {isLoading ? (
-        <div className="space-y-4">
-          {[1, 2, 3].map(i => <div key={i} className="h-40 rounded-2xl bg-muted animate-pulse" />)}
-        </div>
+        <Loader text="Opening your journal..." />
       ) : myEntries.length === 0 ? (
         <div className="text-center py-24">
           <div className="w-16 h-16 bg-secondary rounded-2xl flex items-center justify-center mx-auto mb-4">

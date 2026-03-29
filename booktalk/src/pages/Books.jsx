@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { BookOpen, Plus, Check, BookMarked } from 'lucide-react';
 import { toast } from 'sonner';
 import BookCard from '@/components/books/BookCard';
+import Loader from '@/components/ui/loader';
 
 export default function Books() {
   const [showAdd, setShowAdd] = useState(false);
@@ -120,20 +121,22 @@ export default function Books() {
         </TabsList>
 
         <TabsContent value="reading">
-          <BookList books={reading} queryClient={queryClient} />
+          <BookList books={reading} queryClient={queryClient} isLoading={isLoading} />
         </TabsContent>
         <TabsContent value="finished">
-          <BookList books={finished} queryClient={queryClient} />
+          <BookList books={finished} queryClient={queryClient} isLoading={isLoading} />
         </TabsContent>
         <TabsContent value="want_to_read">
-          <BookList books={wantToRead} queryClient={queryClient} />
+          <BookList books={wantToRead} queryClient={queryClient} isLoading={isLoading} />
         </TabsContent>
       </Tabs>
     </div>
   );
 }
 
-function BookList({ books, queryClient }) {
+function BookList({ books, queryClient, isLoading }) {
+  if (isLoading) return <Loader text="Loading your library..." />;
+  
   if (books.length === 0) {
     return (
       <div className="text-center py-16">

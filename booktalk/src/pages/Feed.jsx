@@ -1,25 +1,47 @@
-import React from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import React, { useState, useEffect, useRef } from 'react';
+import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/lib/AuthContext';
-import { postsApi } from '@/api';
-import { friendshipsApi } from '@/api';
+import { postsApi, friendshipsApi } from '@/api';
 import PostCard from '@/components/posts/PostCard';
-import { Skeleton } from '@/components/ui/skeleton';
-import { BookOpen, Users } from 'lucide-react';
+import { BookOpen, Users, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import Loader from '@/components/ui/loader';
+import { cn } from '@/lib/utils';
 
 export default function Feed() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [pullDistance, setPullDistance] = useState(0);
+  const startY = useRef(0);
+  const loadMoreRef = useRef(null);
+  const PULL_THRESHOLD = 80;
 
-  const { data: posts = [], isLoading } = useQuery({
-    queryKey: ['posts'],
-    queryFn: () => postsApi.list(),
-    initialData: [],
+  // --- Infinite Query for Posts ---
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    refetch
+  } = useInfiniteQuery({
+    queryKey: ['posts-infinite'],
+    queryFn: ({ pageParam = 0 }) => postsApi.list({ page: pageParam, size: 20, sort: 'createdAt,desc' }),
+    getNextPageParam: (lastPage) => {
+      if (!lastPage.page) return undefined;
+      const { number, totalPages } = lastPage.page;
+      return number + 1 < totalPages ? number + 1 : undefined;
+    },
+    initialPageParam: 0,
+    enabled: !!user,
   });
 
+  const posts = data?.pages.flatMap(page => page.content) || [];
+
+  // --- Friendships for Filtering ---
   const { data: friendships = [] } = useQuery({
     queryKey: ['friendships', user?.email],
     queryFn: () => friendshipsApi.filter(),
@@ -27,33 +49,64 @@ export default function Feed() {
     enabled: !!user?.email,
   });
 
-  const handleUpdate = () => {
-    queryClient.invalidateQueries({ queryKey: ['posts'] });
-  };
-
   const friendEmails = friendships.map(f => f.email);
   const friendPosts = posts.filter(p => friendEmails.includes(p.user?.email || p.user?.username));
 
-  const PostList = ({ items }) => {
-    if (isLoading) return (
-      <div className="space-y-4">
-        {[1, 2, 3].map(i => (
-          <div key={i} className="p-5 border border-border rounded-xl space-y-3">
-            <div className="flex gap-3">
-              <Skeleton className="w-10 h-10 rounded-full" />
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-32" />
-                <Skeleton className="h-3 w-24" />
-              </div>
-            </div>
-            <Skeleton className="h-20 w-full rounded-xl" />
-            <Skeleton className="h-12 w-full" />
-          </div>
-        ))}
-      </div>
+  // --- Infinite Scroll Observer ---
+  useEffect(() => {
+    if (!hasNextPage || isFetchingNextPage) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          fetchNextPage();
+        }
+      },
+      { threshold: 0.1 }
     );
 
-    if (items.length === 0) return (
+    if (loadMoreRef.current) observer.observe(loadMoreRef.current);
+    return () => observer.disconnect();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  // --- Pull-to-Refresh Logic ---
+  const handleTouchStart = (e) => {
+    if (window.scrollY === 0) {
+      startY.current = e.touches[0].pageY;
+    } else {
+      startY.current = 0;
+    }
+  };
+
+  const handleTouchMove = (e) => {
+    if (startY.current === 0) return;
+    const currentY = e.touches[0].pageY;
+    const diff = currentY - startY.current;
+
+    if (diff > 0) {
+      const distance = Math.min(diff * 0.5, PULL_THRESHOLD + 20);
+      setPullDistance(distance);
+    }
+  };
+
+  const handleTouchEnd = async () => {
+    if (pullDistance >= PULL_THRESHOLD) {
+      setIsRefreshing(true);
+      await refetch();
+      setIsRefreshing(false);
+    }
+    setPullDistance(0);
+    startY.current = 0;
+  };
+
+  const handleUpdate = () => {
+    queryClient.invalidateQueries({ queryKey: ['posts-infinite'] });
+  };
+
+  const PostList = ({ items }) => {
+    if (isLoading && !isRefreshing) return <Loader text="Fetching your feed..." />;
+
+    if (items.length === 0 && !isLoading) return (
       <div className="text-center py-20">
         <div className="w-16 h-16 bg-secondary rounded-2xl flex items-center justify-center mx-auto mb-4">
           <BookOpen className="w-8 h-8 text-muted-foreground" />
@@ -76,12 +129,43 @@ export default function Feed() {
             onUpdate={handleUpdate}
           />
         ))}
+
+        {/* Infinite Scroll Sentinel */}
+        <div ref={loadMoreRef} className="py-8 text-center min-h-[100px] flex flex-col items-center justify-center">
+          {isFetchingNextPage ? (
+            <Loader variant="mini" text="Loading more posts..." />
+          ) : hasNextPage ? (
+            <p className="text-xs text-muted-foreground italic">Scroll for more</p>
+          ) : posts.length > 0 ? (
+            <p className="text-xs text-muted-foreground italic">You've reached the end!</p>
+          ) : null}
+        </div>
       </div>
     );
   };
 
   return (
-    <div>
+    <div 
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      className="relative transition-transform duration-200"
+      style={{ transform: `translateY(${pullDistance}px)` }}
+    >
+      {/* Pull-To-Refresh Indicator */}
+      <div 
+        className={cn(
+          "absolute left-0 right-0 flex items-center justify-center gap-2 pointer-events-none transition-opacity",
+          pullDistance > 20 ? "opacity-100" : "opacity-0",
+          isRefreshing ? "top-4" : "-top-10"
+        )}
+      >
+        <RefreshCw className={cn("w-5 h-5 text-primary", (isRefreshing || pullDistance >= PULL_THRESHOLD) && "animate-spin")} />
+        <span className="text-xs font-medium text-muted-foreground">
+          {isRefreshing ? "Refreshing..." : pullDistance >= PULL_THRESHOLD ? "Release to refresh" : "Pull to refresh"}
+        </span>
+      </div>
+
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="font-heading text-3xl font-bold text-foreground">Your Feed</h1>

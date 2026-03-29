@@ -12,7 +12,6 @@ export const create = async (payload) => {
     notes: payload.notes || '',
   };
   
-  // Map back to backend standard if they used lowercase or friendly names
   if (mappedPayload.status === 'FINISHED' || mappedPayload.status === 'COMPLETED') {
     mappedPayload.status = 'FINISHED';
   }
@@ -21,14 +20,21 @@ export const create = async (payload) => {
   }
 
   const { data } = await apiClient.post('/books', mappedPayload);
-  return data;
+  // data is a UserBookDto. Flatten it so id is the book id, and userBookId is the mapping.
+  return {
+    id: data.book.id,
+    userBookId: data.id,
+    title: data.book.title,
+    author: data.book.author,
+    status: data.status.toLowerCase(),
+  };
 };
 
 /**
  * Update the reading status of a tracked book
  * POST /api/books/status
  */
-export const updateStatus = async (bookId, status) => {
+export const updateStatus = async (userBookId, status) => {
   // Map our UI statuses to backend ENUM: READING, FINISHED, WANT_TO_READ
   let mappedStatus = 'READING';
   const s = status.toUpperCase().replace(/ /g, '_');
@@ -36,7 +42,7 @@ export const updateStatus = async (bookId, status) => {
   if (['WANT_TO_READ', 'WISHLIST'].includes(s)) mappedStatus = 'WANT_TO_READ';
 
   const { data } = await apiClient.post('/books/status', {
-    bookId,
+    bookId: userBookId, // The "status" update expects the user-book mapping ID
     status: mappedStatus,
   });
   return data;
@@ -69,15 +75,16 @@ export const list = async (params = {}) => {
     url += `?status=${mappedStatus}`;
   }
   const { data } = await apiClient.get(url);
-  // data is an array of UserBookDto: { id, book: { title, author, coverUrl }, status }
+  // data is an array of UserBookDto: { id, book: { id, title, author, coverUrl }, status }
   return data.map(item => ({
-    id: item.book.id || item.id,
-    userBookId: item.id,
+    id: item.book.id, // Primary ID is always the underlying Book ID
+    userBookId: item.id, // ID of the User-Book relationship
     title: item.book.title,
     author: item.book.author,
     coverUrl: item.book.coverUrl,
     publishedDate: item.book.publishedDate,
     status: item.status.toLowerCase(), // e.g. "WANT_TO_READ" -> "want_to_read"
+    notes: item.notes || '',
   }));
 };
 

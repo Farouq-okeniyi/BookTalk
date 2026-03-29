@@ -1,4 +1,4 @@
-import apiClient, { TOKEN_KEY } from './client';
+import apiClient, { TOKEN_KEY, REFRESH_TOKEN_KEY } from './client';
 
 /**
  * Register a new user
@@ -13,15 +13,17 @@ export const register = async ({ username, email, password }) => {
   return data;
 };
 
-/**
- * Login with email and password
- * POST /api/auth/login
- */
 export const login = async ({ email, password }) => {
   const { data } = await apiClient.post('/auth/login', { email, password });
-  if (data.accessToken) {
-    localStorage.setItem(TOKEN_KEY, data.accessToken);
-  }
+  return data;
+};
+
+/**
+ * Refresh the access token using the stored refresh token
+ * POST /api/auth/refresh
+ */
+export const refresh = async () => {
+  const { data } = await apiClient.post('/auth/refresh-token');
   return data;
 };
 
@@ -71,19 +73,16 @@ export const resetPassword = async ({ email, token, newPassword }) => {
  */
 export const logout = async () => {
   try {
-    const refreshToken = localStorage.getItem('booktalk_refresh') || '';
-    await apiClient.post('/auth/logout', { refreshToken });
+    await apiClient.post('/auth/logout');
   } catch (_) {
-    // Ignore server errors on logout; we always clear locally
-  } finally {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem('booktalk_refresh');
+    // Ignore server errors on logout
   }
 };
 
 export const authApi = {
   register,
   login,
+  refresh,
   verifyOtp,
   resendOtp,
   forgotPassword,

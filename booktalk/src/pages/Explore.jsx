@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Search, TrendingUp, BookOpen, Users, LayoutGrid } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import Loader from '@/components/ui/loader';
 
 export default function Explore() {
   const { user } = useAuth();
@@ -16,11 +17,12 @@ export default function Explore() {
   const [activeTab, setActiveTab] = useState('posts');
   const queryClient = useQueryClient();
 
-  const { data: allPosts = [], isLoading } = useQuery({
+  const { data: allPostsRes, isLoading } = useQuery({
     queryKey: ['explore-posts'],
     queryFn: () => postsApi.list({ sort: 'likeCount,desc', size: 50 }),
-    initialData: [],
   });
+
+  const allPosts = allPostsRes?.content || [];
 
   const filteredPosts = allPosts.filter(p => {
     if (!search) return true;
@@ -103,9 +105,7 @@ export default function Explore() {
           )}
 
           {isLoading ? (
-            <div className="space-y-4">
-              {[1, 2, 3].map(i => <Skeleton key={i} className="h-40 w-full rounded-xl" />)}
-            </div>
+            <Loader text="Discovering community thoughts..." />
           ) : filteredPosts.length === 0 ? (
             <div className="text-center py-20 px-6 bg-secondary/20 rounded-2xl border-2 border-dashed border-border/60">
               <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">

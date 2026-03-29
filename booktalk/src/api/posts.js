@@ -11,20 +11,32 @@ export const list = async (params = {}) => {
     url += `&sort=${sort}`;
   }
   const { data } = await apiClient.get(url);
-  // data is a PagePostDto. Return its content array.
-  return data.content || [];
+  // data is a PagePostDto: { content: [], page: { number, totalPages... } }
+  return data;
 };
 
 /**
- * Filter posts locally (shim for backwards compatibility)
+ * Filter posts by user or other criteria. 
+ * If author_email is provided, uses the dedicated profile endpoint.
  */
 export const filter = async (params = {}) => {
-  let allPosts = await list({ size: 200 }); // fetch a large chunk
-  
   if (params.author_email) {
-    allPosts = allPosts.filter(p => p.user?.email === params.author_email || p.user?.username === params.author_email);
+    return getUserPosts(params.author_email);
   }
-  return allPosts;
+
+  // Generic feed-based local filter as fallback
+  let allPosts = await list({ size: 100 });
+  return allPosts.filter(p => p.user?.email === params.author_email || p.user?.username === params.author_email);
+};
+
+/**
+ * Fetch posts for a specific user profile
+ * GET /api/posts/profile?email=...
+ */
+export const getUserPosts = async (email) => {
+  const { data } = await apiClient.get(`/posts/profile?email=${encodeURIComponent(email)}`);
+  // Return full paginated response for robust frontend handling
+  return data;
 };
 
 /**
@@ -70,10 +82,6 @@ export const toggleLike = async (postId, userEmail, currentLikedByMe) => {
   }
 };
 
-/**
- * Share an existing post to your feed
- * POST /api/posts/{postId}/repost
- */
 export const repost = async (postId, quoteText = '') => {
   let url = `/posts/${postId}/repost`;
   if (quoteText) {
@@ -81,6 +89,15 @@ export const repost = async (postId, quoteText = '') => {
   }
   const { data } = await apiClient.post(url);
   return data;
+};
+
+/**
+ * Remove a repost
+ * DELETE /api/posts/{postId}/repost
+ */
+export const removeRepost = async (postId) => {
+  await apiClient.delete(`/posts/${postId}/repost`);
+  return true;
 };
 
 /**
@@ -116,6 +133,7 @@ export const postsApi = {
   remove,
   toggleLike,
   repost,
+  removeRepost,
 };
 
 export default postsApi;

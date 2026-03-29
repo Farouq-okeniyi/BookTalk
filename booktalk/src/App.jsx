@@ -28,17 +28,14 @@ import Profile from '@/pages/Profile';
 import Explore from '@/pages/Explore';
 import Dashboard from '@/pages/Dashboard';
 import Journal from '@/pages/Journal';
+import Loader from '@/components/ui/loader';
 
 /** Protect routes — redirect to /login if not authenticated */
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin" />
-      </div>
-    );
+    return <Loader fullScreen text="Verifying your session..." />;
   }
 
   if (!isAuthenticated) {
@@ -53,11 +50,7 @@ const PublicRoute = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin" />
-      </div>
-    );
+    return <Loader variant="full" text="Initializing PageTalk..." />;
   }
 
   if (isAuthenticated) {
