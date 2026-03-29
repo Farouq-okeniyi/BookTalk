@@ -31,9 +31,9 @@ apiClient.interceptors.response.use(
     const isLoginRequest = error.config?.url?.includes('/auth/login');
     const isLoginPage = window.location.pathname === '/login';
 
-    if (error.response?.status === 401 && !isLoginRequest && !isLoginPage) {
+    if ((error.response?.status === 401 || error.response?.status === 403) && !isLoginRequest && !isLoginPage) {
       localStorage.removeItem(TOKEN_KEY);
-      window.location.href = '/login';
+      window.location.href = '/login?session=expired';
       return Promise.reject(error);
     }
 

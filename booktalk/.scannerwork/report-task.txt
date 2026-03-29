@@ -1,0 +1,6 @@
+projectKey=booktalkfrontend
+serverUrl=http://localhost:9000
+serverVersion=26.3.0.120487
+dashboardUrl=http://localhost:9000/dashboard?id=booktalkfrontend
+ceTaskId=560eb005-3ddf-441b-9dab-af81566549a9
+ceTaskUrl=http://localhost:9000/api/ce/task?id=560eb005-3ddf-441b-9dab-af81566549a9
