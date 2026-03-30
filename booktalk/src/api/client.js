@@ -55,7 +55,7 @@ apiClient.interceptors.response.use(
         // CRITICAL: Only redirect if we are NOT already on the login page to avoid loops
         if (!isLoginPage && !isSignUpPage) {
           // Temporarily removed ?session=expired for debugging
-          window.location.href = '/login';
+          // window.location.href = '/login';
         }
         return Promise.reject(refreshError);
       }
