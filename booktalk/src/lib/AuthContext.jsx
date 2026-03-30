@@ -12,8 +12,13 @@ export const AuthProvider = ({ children }) => {
     // Only attempt to fetch the user if we have an authentication flag set.
     // This prevents unnecessary /me calls before login or after manual logout.
     const hasAuthSession = localStorage.getItem('booktalk_authenticated') === 'true';
+    const isAuthPage = window.location.pathname.startsWith('/login') || 
+                      window.location.pathname.startsWith('/register') ||
+                      window.location.pathname.startsWith('/signup');
     
-    if (!hasAuthSession) {
+    // If we're already on an auth page, don't try to background-check /me 
+    // to avoid triggering redirects or session-expired toasts prematurely.
+    if (!hasAuthSession || isAuthPage) {
       setIsLoading(false);
       return;
     }
