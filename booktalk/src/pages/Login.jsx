@@ -14,8 +14,8 @@ export default function Login() {
 
   useEffect(() => {
     if (searchParams.get('session') === 'expired') {
-      console.log(searchParams.get('session'))
-      toast.error('Your session has expired. Please log in again.');
+      console.log(searchParams)
+      toast.error('Your session has expired. Please log in again. is push working??');
       // Clean up the URL
       // window.history.replaceState({}, document.title, window.location.pathname);
     }
