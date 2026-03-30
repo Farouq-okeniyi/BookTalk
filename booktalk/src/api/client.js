@@ -54,7 +54,8 @@ apiClient.interceptors.response.use(
         localStorage.removeItem('booktalk_authenticated');
         // CRITICAL: Only redirect if we are NOT already on the login page to avoid loops
         if (!isLoginPage && !isSignUpPage) {
-          window.location.href = '/login?session=expired';
+          // Temporarily removed ?session=expired for debugging
+          window.location.href = '/login';
         }
         return Promise.reject(refreshError);
       }
