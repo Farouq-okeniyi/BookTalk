@@ -14,25 +14,33 @@ export const apiClient = axios.create({
   },
 });
 
-// NOTE: In cookie-based auth, we no longer need the request interceptor
-// to inject Authorization headers. The browser handles it automatically.
+// 1. Request Interceptor: Attach the Access Token to every outgoing request
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
-// Handle global response errors and session expiration
+// 2. Response Interceptor: Handle global response errors and session expiration
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
-    // 1. Handle session expiration (401)
+    // A. Handle session expiration (401)
     const isLoginRequest = originalRequest.url?.includes('/auth/login');
     const isRefreshRequest = originalRequest.url?.includes('/auth/refresh-token');
     const isSignUpRequest = originalRequest.url?.includes('/auth/signup');
     const isLoginPage = window.location.pathname.startsWith('/login');
     const isSignUpPage = window.location.pathname.startsWith('/signup') || window.location.pathname.startsWith('/register');
     
-    // We only attempt to refresh if the user was supposedly authenticated.
-    // This prevents /refresh-token calls on initial mount if the session was already dead.
-    const hasAuthSession = localStorage.getItem('booktalk_authenticated') === 'true';
+    // Check if we have an active session flag
+    const hasAuthSession = localStorage.getItem('booktalk_authenticated') === 'true' || !!localStorage.getItem(TOKEN_KEY);
 
     if (
       error.response?.status === 401 && 
@@ -45,26 +53,34 @@ apiClient.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        // Attempt to refresh the token using HttpOnly cookies
-        await axios.post(`${BASE_URL}/auth/refresh-token`, {}, { withCredentials: true });
+        // Attempt to refresh the token using HttpOnly cookies (withCredentials: true)
+        const refreshResponse = await axios.post(`${BASE_URL}/auth/refresh-token`, {}, { withCredentials: true });
         
-        // Retry the original request
-        return apiClient(originalRequest);
+        // Extract new Access Token from the response body (JSON)
+        const newAccessToken = refreshResponse.data.accessToken || refreshResponse.data.token;
+        
+        if (newAccessToken) {
+          localStorage.setItem(TOKEN_KEY, newAccessToken);
+          localStorage.setItem('booktalk_authenticated', 'true');
+          
+          // Update the original request with the new token and retry
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+          return apiClient(originalRequest);
+        }
       } catch (refreshError) {
+        localStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem('booktalk_authenticated');
-        // CRITICAL: Only redirect if we are NOT already on the login page to avoid loops
+        // Only redirect if we are NOT already on an auth page
         if (!isLoginPage && !isSignUpPage) {
-          // Temporarily removed ?session=expired for debugging
-          // window.location.href = '/login';
+          window.location.href = '/login';
         }
         return Promise.reject(refreshError);
       }
     } else if (error.response?.status === 401 && !isLoginRequest && !isSignUpRequest) {
-      // If we got a 401 and didn't refresh (maybe because flag is missing), 
-      // ensure the flag is definitely cleared.
+      // Clear session data if refresh was skipped or not applicable
+      localStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem('booktalk_authenticated');
       
-      // If this was a protected route and we aren't on an auth page, redirect
       if (!isLoginPage && !isSignUpPage && !originalRequest.url?.includes('/users/me')) {
         window.location.href = '/login';
       }

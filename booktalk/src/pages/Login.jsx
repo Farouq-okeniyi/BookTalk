@@ -12,17 +12,15 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Temporarily disabled for debugging in production
-  /*
   useEffect(() => {
     if (searchParams.get('session') === 'expired') {
-      console.log(searchParams)
+     
       toast.error('Your session has expired. Please log in again. is push working??');
       // Clean up the URL
-      // window.history.replaceState({}, document.title, window.location.pathname);
+      window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, [searchParams]);
-  */
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();

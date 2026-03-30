@@ -9,15 +9,13 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Only attempt to fetch the user if we have an authentication flag set.
-    // This prevents unnecessary /me calls before login or after manual logout.
-    const hasAuthSession = localStorage.getItem('booktalk_authenticated') === 'true';
+    // Only attempt to fetch the user if we have a token or flag set
+    const token = localStorage.getItem('booktalk_token');
+    const hasAuthSession = localStorage.getItem('booktalk_authenticated') === 'true' || !!token;
     const isAuthPage = window.location.pathname.startsWith('/login') || 
                       window.location.pathname.startsWith('/register') ||
                       window.location.pathname.startsWith('/signup');
     
-    // If we're already on an auth page, don't try to background-check /me 
-    // to avoid triggering redirects or session-expired toasts prematurely.
     if (!hasAuthSession || isAuthPage) {
       setIsLoading(false);
       return;
@@ -40,6 +38,12 @@ export const AuthProvider = ({ children }) => {
 
   const login = useCallback(async ({ email, password }) => {
     const data = await authApi.login({ email, password });
+    
+    // Handle Access Token from body
+    const accessToken = data.accessToken || data.token;
+    if (accessToken) {
+      localStorage.setItem('booktalk_token', accessToken);
+    }
     
     localStorage.setItem('booktalk_user_email', data.email);
     localStorage.setItem('booktalk_authenticated', 'true');
@@ -78,6 +82,7 @@ export const AuthProvider = ({ children }) => {
     setIsAuthenticated(false);
     localStorage.removeItem('booktalk_user_email');
     localStorage.removeItem('booktalk_authenticated');
+    localStorage.removeItem('booktalk_token');
     window.location.href = '/login';
   }, []);
 
